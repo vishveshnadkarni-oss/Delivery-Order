@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bajaj Finance — Subvention Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#1a1a1a;color:#f0f0f0;font-size:15px;line-height:1.5;min-height:100vh}
+.hdr{background:#000;border-bottom:3px solid #f5c300;padding:14px 20px;display:flex;align-items:center;gap:12px}
+.hdr-badge{background:#f5c300;color:#000;font-size:11px;font-weight:700;letter-spacing:.08em;padding:4px 10px;text-transform:uppercase;white-space:nowrap}
+.hdr-title{font-size:17px;font-weight:700;color:#fff}
+.hdr-sub{font-size:11px;color:#888;letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
+.wrap{max-width:860px;margin:0 auto;padding:16px 16px 60px}
+.panel{background:#111;border:1px solid #2a2a2a;border-top:2px solid #f5c300;margin-bottom:16px}
+.panel-head{background:#000;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2a2a2a;gap:8px;flex-wrap:wrap}
+.panel-head h2{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f5c300}
+.panel-body{padding:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(min-width:600px){.g3{grid-template-columns:1fr 1fr 1fr}}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld>label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888}
+.fld input,.fld select,.fld textarea{background:#1a1a1a;border:1px solid #333;color:#f0f0f0;padding:12px 12px;font-size:16px;font-family:inherit;outline:none;transition:border-color .15s;width:100%;-webkit-appearance:none;appearance:none;border-radius:0;resize:none}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:#f5c300}
+.fld input::placeholder,.fld textarea::placeholder{color:#444;font-size:14px}
+.fld select option{background:#1a1a1a;color:#f0f0f0}
+.pair{display:grid;grid-template-columns:1fr 1fr;border:1px solid #333;transition:border-color .15s}
+.pair:focus-within{border-color:#f5c300}
+.pair .half{position:relative}
+.pair .half input{border:none;border-right:1px solid #333;background:#1a1a1a}
+.pair .half:last-child input{border-right:none}
+.pair .half .pfx{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#888;font-size:14px;pointer-events:none}
+.pair .half .sfx{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;font-size:12px;pointer-events:none}
+.pair .half input.has-pfx{padding-left:20px}
+.pair .half input.has-sfx{padding-right:28px}
+.pair-label{display:grid;grid-template-columns:1fr 1fr;margin-bottom:4px}
+.pair-label span{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888}
+.num-wrap{position:relative}
+.num-wrap .prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#888;font-size:16px;pointer-events:none}
+.num-wrap input{padding-left:24px !important}
+.oem-chk{display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.oem-chk input[type=checkbox]{display:none}
+.oem-box{width:18px;height:18px;border:1.5px solid #444;background:#1a1a1a;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.oem-box svg{display:none;width:11px;height:11px}
+.oem-chk input:checked ~ .oem-box{background:#f5c300;border-color:#f5c300}
+.oem-chk input:checked ~ .oem-box svg{display:block}
+.oem-chk input:checked ~ .oem-lbl{color:#f5c300}
+.oem-lbl{font-size:12px;color:#555;font-weight:700;letter-spacing:.06em;text-transform:uppercase;transition:color .15s;user-select:none}
+.mode-row{display:flex;align-items:center;gap:6px;margin-top:4px}
+.mode-btn{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid #333;background:transparent;color:#555;padding:3px 8px;cursor:pointer;font-family:inherit;transition:all .12s}
+.mode-btn.active{background:#333;color:#f0f0f0;border-color:#555}
+.tog-row{display:flex}
+.tog{flex:1;padding:12px;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border:1px solid #333;background:transparent;color:#555;cursor:pointer;font-family:inherit;transition:all .15s}
+.tog:first-child{border-right:none}
+.tog.yes{background:#f5c300;border-color:#f5c300;color:#000}
+.tog.no{background:#222;border-color:#444;color:#f0f0f0}
+.div{height:1px;background:#2a2a2a;margin:16px 0}
+.sec-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#666;margin-bottom:12px}
+.chg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(min-width:600px){.chg-grid{grid-template-columns:repeat(5,1fr)}}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
+.btn-calc{background:#f5c300;color:#000;border:none;padding:14px 32px;font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;width:100%}
+@media(min-width:400px){.btn-calc{width:auto}}
+.btn-calc:hover{opacity:.85}
+.btn-reset{background:transparent;color:#666;border:1px solid #333;padding:13px 20px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.btn-reset:hover{color:#f0f0f0;border-color:#555}
+.copy-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn-wa{background:transparent;color:#25d366;border:1px solid #25d366;padding:9px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-wa:active,.btn-wa:hover{background:#25d366;color:#000}
+.btn-email{background:transparent;color:#f5c300;border:1px solid #f5c300;padding:9px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-email:active,.btn-email:hover{background:#f5c300;color:#000}
+.copied{font-size:11px;letter-spacing:.04em;opacity:0;transition:opacity .3s;white-space:nowrap}
+.copied.show{opacity:1}
+.err{background:#1a0a0a;border:1px solid #5c1a1a;color:#f87171;padding:12px 16px;font-size:13px;margin-bottom:12px;display:none}
+.result{display:none}.result.show{display:block}
+.sum-tbl{width:100%;border-collapse:collapse}
+.sum-tbl tr{border-bottom:1px solid #222}
+.sum-tbl tr:last-child{border-bottom:none}
+.sum-tbl td{padding:11px 16px;font-size:14px;vertical-align:middle}
+.sum-tbl td:first-child{color:#aaa;font-size:13px;font-weight:400;width:55%}
+.sum-tbl td:last-child{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;color:#f0f0f0}
+.sub-note{font-size:11px;color:#666;display:block;margin-top:2px;font-weight:400}
+.r-head td{background:#000 !important;border-bottom:1px solid #333 !important}
+.r-head td:first-child{color:#f5c300 !important;font-size:13px !important;font-weight:600 !important;padding:10px 16px !important}
+.r-head td:last-child{color:#f5c300 !important;text-align:right !important;font-size:14px !important;font-weight:700 !important;padding:10px 16px !important}
+.r-sub td:first-child{padding-left:28px !important;color:#555 !important;font-size:13px !important}
+.r-sub td:last-child{color:#777 !important;font-weight:400 !important}
+.r-sub-oem td:first-child{padding-left:28px !important;color:#888 !important;font-size:13px !important}
+.r-sub-oem td:last-child{color:#f5c300 !important;font-weight:600 !important}
+.r-hl{background:#111 !important;border-top:1px solid #333 !important;border-bottom:1px solid #333 !important}
+.r-hl td:first-child{color:#ddd !important;font-size:14px !important;font-weight:600 !important}
+.r-hl td:last-child{font-size:17px !important;color:#fff !important}
+.r-green td:first-child{color:#4ade80 !important;font-size:14px !important;font-weight:500 !important}
+.r-green td:last-child{color:#4ade80 !important;font-size:15px !important}
+.r-net{background:#f5c300 !important;border-top:2px solid #e0b000 !important}
+.r-net td{padding:14px 16px !important}
+.r-net td:first-child{color:#5a4500 !important;font-size:14px !important;font-weight:600 !important}
+.r-net td:last-child{color:#000 !important;font-size:20px !important;font-weight:700 !important}
+.amort-wrap{overflow-x:auto;max-height:400px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.amort-tbl{width:100%;border-collapse:collapse;min-width:480px}
+.amort-tbl thead th{position:sticky;top:0;background:#000;padding:10px 12px;font-size:11px;font-weight:700;text-align:right;color:#888;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #f5c300;z-index:1}
+.amort-tbl thead th:first-child{text-align:center;width:52px}
+.amort-tbl tbody td{padding:9px 12px;font-size:13px;text-align:right;border-bottom:1px solid #1e1e1e;font-variant-numeric:tabular-nums;color:#ccc}
+.amort-tbl tbody td:first-child{text-align:center;color:#555;font-weight:700}
+.amort-tbl tfoot td{padding:10px 12px;font-size:13px;font-weight:700;text-align:right;background:#000;border-top:1px solid #f5c300;color:#f5c300;font-variant-numeric:tabular-nums}
+.amort-tbl tfoot td:first-child{text-align:center}
+.scroll-hint{font-size:11px;color:#555;text-align:center;padding:6px}
+@media(min-width:600px){.scroll-hint{display:none}}
+.do-grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:650px){.do-grid{grid-template-columns:1fr 1fr}}
+.do-grid .wide{grid-column:1/-1}
+.btn-pdf{background:#f5c300;color:#000;border:none;padding:14px 24px;font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;width:100%}
+@media(min-width:400px){.btn-pdf{width:auto}}
+.btn-share{background:transparent;color:#f0f0f0;border:1px solid #555;padding:13px 20px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.btn-share:disabled{opacity:.35;cursor:not-allowed}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-badge">Bajaj Finance</div>
+  <div>
+    <div class="hdr-title">Subvention Calculator</div>
+    <div class="hdr-sub">Internal Deal Tool</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="errMsg" class="err"></div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Deal Parameters</h2></div>
+    <div class="panel-body">
+      <div class="g3" style="margin-bottom:14px">
+        <div class="fld">
+          <label>Purchase Order Value (₹)</label>
+          <div class="num-wrap"><span class="prefix">₹</span>
+            <input type="text" id="po" placeholder="10,00,000" oninput="fmtField(this);syncAdvMargin('po')" inputmode="numeric"/>
+          </div>
+        </div>
+        <div class="fld">
+          <div class="pair-label"><span>Advance Paid (₹)</span><span>Margin %</span></div>
+          <div class="pair">
+            <div class="half"><span class="pfx">₹</span>
+              <input type="text" id="adv" class="has-pfx" placeholder="2,00,000" oninput="fmtField(this);syncAdvMargin('adv')" inputmode="numeric"/>
+            </div>
+            <div class="half">
+              <input type="number" id="marginPct" placeholder="20" oninput="syncAdvMargin('margin')" inputmode="decimal" step="0.01"/>
+              <span class="sfx">%</span>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#555;margin-top:3px">Fill either — the other auto-calculates</div>
+        </div>
+        <div class="fld"><label>Loan Tenor (months)</label>
+          <input type="number" id="tenor" placeholder="1–84" min="1" max="84" inputmode="numeric"/>
+        </div>
+        <div class="fld"><label>Rate of Interest (%)</label>
+          <input type="number" id="roi" placeholder="e.g. 10" min="0" max="100" step="0.01" inputmode="decimal" oninput="if(sub==='Split')syncSplitRoi('none')"/>
+        </div>
+        <div class="fld"><label>Disbursement State</label>
+          <select id="state">
+            <option value="">— Select State —</option>
+            <option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option>
+            <option>Bihar</option><option>Chhattisgarh</option><option>Delhi *</option>
+            <option>Goa</option><option>Gujarat</option><option>Haryana</option>
+            <option>Himachal Pradesh</option><option>Jammu &amp; Kashmir</option><option>Jharkhand</option>
+            <option>Karnataka</option><option>Kerala</option><option>Madhya Pradesh</option>
+            <option>Maharashtra</option><option>Manipur</option><option>Meghalaya</option>
+            <option>Mizoram</option><option>Nagaland</option><option>Orissa</option>
+            <option>Pondicherry *</option><option>Punjab</option><option>Rajasthan</option>
+            <option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option>
+            <option>Tripura</option><option>Uttar Pradesh</option><option>Uttaranchal</option>
+            <option>West Bengal</option><option>Andaman &amp; Nicobar Islands *</option>
+            <option>Chandigarh *</option><option>Dadra &amp; Nagar Haveli *</option>
+            <option>Daman &amp; Diu *</option><option>Lakshadweep *</option>
+          </select>
+        </div>
+        <div class="fld"><label>Subvention</label>
+          <div class="tog-row">
+            <button class="tog no" id="togNo"    onclick="setSub('No')">No</button>
+            <button class="tog"    id="togYes"   onclick="setSub('Yes')">Full</button>
+            <button class="tog"    id="togSplit" onclick="setSub('Split')">Split</button>
+          </div>
+        </div>
+        <div class="fld" id="splitFields" style="display:none;grid-column:1/-1">
+          <div class="pair-label"><span>Customer ROI (%)</span><span>OEM Bears (%)</span></div>
+          <div class="pair">
+            <div class="half">
+              <input type="number" id="custRoi" placeholder="e.g. 4" min="0" step="0.01" oninput="syncSplitRoi('cust')" inputmode="decimal"/>
+              <span class="sfx">%</span>
+            </div>
+            <div class="half">
+              <input type="number" id="oemRoi" placeholder="auto" min="0" step="0.01" oninput="syncSplitRoi('oem')" inputmode="decimal"/>
+              <span class="sfx">%</span>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#555;margin-top:3px">Fill either — the other auto-calculates from BFL ROI</div>
+        </div>
+      </div>
+
+      <div class="div"></div>
+      <div class="sec-label">Charges — tick "OEM Bears" if covered by OEM</div>
+      <div class="chg-grid">
+        <div class="fld">
+          <div class="pair-label"><span>Processing Fee %</span><span>Amount (₹)</span></div>
+          <div class="pair">
+            <div class="half">
+              <input type="number" id="pfPct" placeholder="0.5" step="0.01" oninput="syncPF('pct')" inputmode="decimal"/>
+              <span class="sfx">%</span>
+            </div>
+            <div class="half"><span class="pfx">₹</span>
+              <input type="text" id="pf" class="has-pfx" placeholder="auto" oninput="fmtField(this);syncPF('amt')" inputmode="numeric"/>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#555;margin-top:3px">% of balance + 18% GST</div>
+          <label class="oem-chk" for="pfS"><input type="checkbox" id="pfS"/>
+            <span class="oem-box"><svg viewBox="0 0 10 8" fill="none"><polyline points="1,4 4,7 9,1" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="oem-lbl">OEM Bears</span></label>
+        </div>
+        <div class="fld"><label>Insurance</label>
+          <div class="mode-row">
+            <button class="mode-btn active" id="insModeAmt" onclick="setMode('ins','amt')">&#8377; Amount</button>
+            <button class="mode-btn" id="insModeText" onclick="setMode('ins','text')">Text</button>
+          </div>
+          <input type="number" id="insAmt" placeholder="0" min="0" inputmode="numeric" style="display:block"/>
+          <textarea id="insText" placeholder="e.g. As per actuals" rows="2" style="display:none;font-size:14px"></textarea>
+          <label class="oem-chk" for="insS"><input type="checkbox" id="insS"/>
+            <span class="oem-box"><svg viewBox="0 0 10 8" fill="none"><polyline points="1,4 4,7 9,1" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="oem-lbl">OEM Bears</span></label>
+        </div>
+        <div class="fld"><label>Stamp Duty</label>
+          <div class="mode-row">
+            <button class="mode-btn active" id="sdModeAmt" onclick="setMode('sd','amt')">&#8377; Amount</button>
+            <button class="mode-btn" id="sdModeText" onclick="setMode('sd','text')">Text</button>
+          </div>
+          <input type="number" id="sdAmt" placeholder="Enter for state" min="0" inputmode="numeric" style="display:block"/>
+          <textarea id="sdText" placeholder="e.g. As per actuals" rows="2" style="display:none;font-size:14px"></textarea>
+          <label class="oem-chk" for="sdS"><input type="checkbox" id="sdS"/>
+            <span class="oem-box"><svg viewBox="0 0 10 8" fill="none"><polyline points="1,4 4,7 9,1" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="oem-lbl">OEM Bears</span></label>
+        </div>
+        <div class="fld"><label>Documentation (&#8377;)</label>
+          <input type="number" id="dc" placeholder="0" min="0" inputmode="numeric"/>
+          <label class="oem-chk" for="dcS"><input type="checkbox" id="dcS"/>
+            <span class="oem-box"><svg viewBox="0 0 10 8" fill="none"><polyline points="1,4 4,7 9,1" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="oem-lbl">OEM Bears</span></label>
+        </div>
+        <div class="fld"><label>Hybrid Flexi (&#8377;)</label>
+          <input type="number" id="fc" placeholder="0" min="0" inputmode="numeric"/>
+          <label class="oem-chk" for="fcS"><input type="checkbox" id="fcS"/>
+            <span class="oem-box"><svg viewBox="0 0 10 8" fill="none"><polyline points="1,4 4,7 9,1" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="oem-lbl">OEM Bears</span></label>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-calc" onclick="calc()">Calculate</button>
+        <button class="btn-reset" onclick="resetForm()">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Delivery Order Details</h2></div>
+    <div class="panel-body">
+      <div class="do-grid">
+        <div class="fld"><label>Delivery Order Date</label>
+          <input type="date" id="doDate"/>
+        </div>
+        <div class="fld"><label>SME Number</label>
+          <input type="text" id="doSme" placeholder="123456" inputmode="numeric"/>
+        </div>
+        <div class="fld"><label>OEM Name</label>
+          <input type="text" id="doOemName" placeholder="OEM name"/>
+        </div>
+        <div class="fld"><label>City</label>
+          <input type="text" id="doCity" placeholder="City"/>
+        </div>
+        <div class="fld wide"><label>OEM Address</label>
+          <textarea id="doOemAddress" placeholder="OEM address" rows="2"></textarea>
+        </div>
+        <div class="fld"><label>Customer Name</label>
+          <input type="text" id="doCustomerName" placeholder="Customer name"/>
+        </div>
+        <div class="fld"><label>Machine Name</label>
+          <input type="text" id="doMachineName" placeholder="Machine name"/>
+        </div>
+        <div class="fld"><label>Principal Moratorium / Flexi Tenor</label>
+          <input type="text" id="doMoratorium" placeholder="Manual value"/>
+        </div>
+        <div class="fld"><label>Customer EMI during Moratorium / Flexi</label>
+          <input type="text" id="doMoratoriumEmi" placeholder="Manual value"/>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-pdf" onclick="downloadDeliveryOrder()">Download Delivery Order PDF</button>
+        <button class="btn-share" id="shareDoBtn" onclick="shareDeliveryOrder()" disabled>Share PDF</button>
+        <span class="copied" id="doMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Deal Summary</h2>
+        <div class="copy-btns">
+          <button class="btn-wa" onclick="copyWA()">Copy for WhatsApp</button>
+          <button class="btn-email" onclick="openEmail()">&#128233; Email Table</button>
+          <span class="copied" id="copiedMsg"></span>
+        </div>
+      </div>
+      <table class="sum-tbl" id="sumTbl"></table>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Customer Amortisation Schedule</h2>
+        <div class="copy-btns">
+          <button class="btn-email" onclick="openAmort()">&#128233; Email Amortisation</button>
+          <span class="copied" id="copiedAmortMsg"></span>
+        </div>
+      </div>
+      <div class="scroll-hint">&#8592; Scroll sideways to see full table &#8594;</div>
+      <div class="amort-wrap">
+        <table class="amort-tbl">
+          <thead><tr>
+            <th>Month</th><th>Opening</th><th>EMI</th>
+            <th>Interest</th><th>Principal</th><th>Closing</th>
+          </tr></thead>
+          <tbody id="amortBody"></tbody>
+          <tfoot id="amortFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let sub='No', insModeIsText=false, sdModeIsText=false;
+let _d={};
+
+function fmtField(el){
+  const pos=el.selectionStart;
+  const raw=el.value.replace(/,/g,'');
+  if(raw===''||isNaN(raw)){el.value=raw;return;}
+  const fmt=parseInt(raw,10).toLocaleString('en-IN');
+  el.value=fmt;
+  try{el.setSelectionRange(pos+(fmt.length-raw.length),pos+(fmt.length-raw.length));}catch(e){}
+}
+function getRaw(id){return parseFloat(document.getElementById(id).value.replace(/,/g,''))||0;}
+function n(id){return parseFloat(document.getElementById(id).value)||0;}
+function sv(id){return document.getElementById(id).value;}
+function chk(id){return document.getElementById(id).checked;}
+function fmtINR(v){return v===undefined||isNaN(v)?'—':'&#8377;'+Math.round(v).toLocaleString('en-IN');}
+function fmtINRplain(v){return v===undefined||isNaN(v)?'—':'\u20b9'+Math.round(v).toLocaleString('en-IN');}
+function pmt(r,n,pv){return r===0?pv/n:pv*r/(1-Math.pow(1+r,-n));}
+function pvAnn(r,n,emi){return r===0?emi*n:emi*(1-Math.pow(1+r,-n))/r;}
+
+function syncAdvMargin(changed){
+  const po=getRaw('po'); if(!po)return;
+  if(changed==='adv'||changed==='po'){
+    const adv=getRaw('adv');
+    document.getElementById('marginPct').value=adv>0?((adv/po)*100).toFixed(2):'';
+  } else {
+    const pct=parseFloat(document.getElementById('marginPct').value)||0;
+    const adv=Math.round(po*pct/100);
+    document.getElementById('adv').value=adv>0?adv.toLocaleString('en-IN'):'';
+  }
+}
+function syncPF(changed){
+  const po=getRaw('po'),adv=getRaw('adv'),bal=po-adv;
+  if(changed==='pct'){
+    const pct=parseFloat(document.getElementById('pfPct').value)||0;
+    document.getElementById('pf').value=(pct>0&&bal>0)?Math.round(bal*pct/100*1.18).toLocaleString('en-IN'):'';
+  } else {
+    const amt=getRaw('pf');
+    document.getElementById('pfPct').value=(amt>0&&bal>0)?(amt/1.18/bal*100).toFixed(3):'';
+  }
+}
+function setMode(field,mode){
+  const isText=(mode==='text');
+  if(field==='ins'){
+    insModeIsText=isText;
+    document.getElementById('insAmt').style.display=isText?'none':'block';
+    document.getElementById('insText').style.display=isText?'block':'none';
+    document.getElementById('insModeAmt').className='mode-btn'+(isText?'':' active');
+    document.getElementById('insModeText').className='mode-btn'+(isText?' active':'');
+  } else {
+    sdModeIsText=isText;
+    document.getElementById('sdAmt').style.display=isText?'none':'block';
+    document.getElementById('sdText').style.display=isText?'block':'none';
+    document.getElementById('sdModeAmt').className='mode-btn'+(isText?'':' active');
+    document.getElementById('sdModeText').className='mode-btn'+(isText?' active':'');
+  }
+}
+function setSub(v){
+  sub=v;
+  document.getElementById('togNo').className   ='tog'+(v==='No'   ?' no' :'');
+  document.getElementById('togYes').className  ='tog'+(v==='Yes'  ?' yes':'');
+  document.getElementById('togSplit').className='tog'+(v==='Split'?' yes':'');
+  document.getElementById('splitFields').style.display=(v==='Split')?'grid':'none';
+  if(v==='Split') syncSplitRoi('none');
+}
+function syncSplitRoi(changed){
+  const bfl=parseFloat(document.getElementById('roi').value)||0;
+  if(!bfl) return;
+  if(changed==='cust'){
+    const cr=parseFloat(document.getElementById('custRoi').value)||0;
+    document.getElementById('oemRoi').value=Math.max(0,bfl-cr).toFixed(2);
+  } else if(changed==='oem'){
+    const or=parseFloat(document.getElementById('oemRoi').value)||0;
+    document.getElementById('custRoi').value=Math.max(0,bfl-or).toFixed(2);
+  } else {
+    // just sync display when BFL roi changes
+    const cr=parseFloat(document.getElementById('custRoi').value)||0;
+    if(cr) document.getElementById('oemRoi').value=Math.max(0,bfl-cr).toFixed(2);
+  }
+}
+
+function calc(){
+  const po=getRaw('po'),adv=getRaw('adv');
+  const tenor=parseInt(sv('tenor'))||0,roiPct=n('roi'),state=sv('state');
+  const pfA=getRaw('pf');
+  const insA=insModeIsText?0:n('insAmt');
+  const insTextVal=insModeIsText?document.getElementById('insText').value.trim():'';
+  const sdA=sdModeIsText?0:n('sdAmt');
+  const sdTextVal=sdModeIsText?document.getElementById('sdText').value.trim():'';
+  const dcA=n('dc'),fcA=n('fc');
+  const pfOEM=chk('pfS'),insOEM=chk('insS'),sdOEM=chk('sdS'),dcOEM=chk('dcS'),fcOEM=chk('fcS');
+  const err=document.getElementById('errMsg');
+  if(!po||!tenor||!roiPct){err.textContent='Please enter Purchase Order Value, Tenor and Rate of Interest.';err.style.display='block';return;}
+  if(adv>=po){err.textContent='Advance must be less than Purchase Order Value.';err.style.display='block';return;}
+  err.style.display='none';
+  const roi=roiPct/100,r=roi/12;
+  const balance=po-adv,marginPct=adv/po;
+  const totalCharges=pfA+insA+sdA+dcA+fcA;
+  const oemCharges=(pfOEM?pfA:0)+(insOEM?insA:0)+(sdOEM?sdA:0)+(dcOEM?dcA:0)+(fcOEM?fcA:0);
+  const nonOEMChg=totalCharges-oemCharges;
+  const custLoan=balance+nonOEMChg;
+  // Determine effective customer rate
+  let custRoiPct=0;
+  if(sub==='Yes') custRoiPct=0;
+  else if(sub==='Split') custRoiPct=parseFloat(document.getElementById('custRoi').value)||0;
+  else custRoiPct=roiPct; // No subvention — customer pays full BFL rate
+  const custR=custRoiPct/100/12;
+
+  const emi=(custRoiPct===0)?custLoan/tenor:pmt(custR,tenor,custLoan);
+
+  let subvAmt=0;
+  if(sub==='Yes'||sub==='Split'){
+    // Bajaj method: PV of monthly interest differential (BFL rate - cust rate)
+    // Full subvention (custR=0): discount at BFL rate
+    // Split subvention (custR>0): discount at customer rate
+    const discR = custR > 0 ? custR : r;
+    let op=custLoan, pvDiff=0;
+    for(let m=1;m<=tenor;m++){
+      const diff=op*(r-custR);           // OEM pays this each month
+      pvDiff+=diff/Math.pow(1+discR,m);  // PV at appropriate rate
+      const custInt=op*custR;
+      const prin=emi-custInt;
+      op-=prin;
+    }
+    subvAmt=pvDiff*1.18;
+    if(subvAmt<0)subvAmt=0;
+  }
+  const netToOEM=sub==='No'?balance:balance-subvAmt-oemCharges;
+  const today=new Date();
+  const dateStr=today.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  const insDisplay=insModeIsText?(insTextVal||'As per actuals'):fmtINR(insA);
+  const sdDisplay=sdModeIsText?(sdTextVal||'As per actuals'):fmtINR(sdA);
+  const insDisplayPlain=insModeIsText?(insTextVal||'As per actuals'):fmtINRplain(insA);
+  const sdDisplayPlain=sdModeIsText?(sdTextVal||'As per actuals'):fmtINRplain(sdA);
+
+  const oemRoiPct=(sub==='Split')?(roiPct-custRoiPct):((sub==='Yes')?roiPct:0);
+  _d={dateStr,po,adv,marginPct,balance,custLoan,state,tenor,roiPct,custRoiPct,oemRoiPct,sub,
+      totalCharges,pfA,insA,insDisplay,insDisplayPlain,sdA,sdDisplay,sdDisplayPlain,
+      dcA,fcA,emi,subvAmt,netToOEM,pfOEM,insOEM,sdOEM,dcOEM,fcOEM,insModeIsText,sdModeIsText};
+
+  const oemTag=s=>s?' (OEM Bears)':'';
+  const rows=[
+    {l:'Date',                                    v:dateStr,                         c:'',        note:''},
+    {l:'Machine value (incl. of GST)',             v:fmtINR(po),                      c:'',        note:''},
+    {l:'Advance paid',                             v:fmtINR(adv),                     c:'',        note:''},
+    {l:'Margin money',                             v:(marginPct*100).toFixed(2)+'%',  c:'',        note:''},
+    {l:'Final loan amount (payable by customer)',  v:fmtINR(custLoan),                c:'r-hl',    note:''},
+    {l:'Disbursement state',                       v:state||'&#8212;',                c:'',        note:''},
+    {l:'Loan tenor',                               v:tenor+' months',                 c:'',        note:''},
+    {l:(sub==='Split'?'Rate of interest (BFL)':'Rate of interest'), v:roiPct.toFixed(2)+'%', c:'', note:(sub==='Split'?'Customer: '+custRoiPct.toFixed(2)+'%  |  OEM bears: '+oemRoiPct.toFixed(2)+'%':''),        note:''},
+    {l:'Total charges',                            v:fmtINR(totalCharges),            c:'r-head',  note:''},
+    {l:'Processing fee',                           v:fmtINR(pfA),                     c:pfOEM?'r-sub-oem':'r-sub', note:'incl. of GST'},
+    {l:'Insurance',                                v:insDisplay,                      c:insOEM?'r-sub-oem':'r-sub', note:insModeIsText?'':'incl. of GST'},
+    {l:'Stamp duty',                               v:sdDisplay,                       c:sdOEM?'r-sub-oem':'r-sub', note:''},
+    {l:'Documentation charges',                    v:fmtINR(dcA),                     c:dcOEM?'r-sub-oem':'r-sub', note:'incl. of GST'},
+    {l:'Hybrid Flexi charge',                      v:fmtINR(fcA),                     c:fcOEM?'r-sub-oem':'r-sub', note:''},
+    {l:'Customer EMI',                             v:fmtINR(emi),                     c:'r-hl',    note:''},
+    {l:(sub==='Split'?'Partial subvention amount (incl. GST 18%)':'Total subvention amount (incl. GST 18%)'), v:fmtINR(subvAmt), c:'r-green', note:''},
+    {l:'Net payment to OEM',                       v:fmtINR(netToOEM),                c:'r-net',   note:''},
+  ];
+  document.getElementById('sumTbl').innerHTML=rows.map(r=>{
+    const noteHtml=r.note?`<span class="sub-note">${r.note}</span>`:'';
+    return `<tr class="${r.c}"><td>${r.l}${noteHtml}</td><td>${r.v}</td></tr>`;
+  }).join('');
+
+  const custRate=custRoiPct===0?0:custR;
+  let op=custLoan,totE=0,totI=0,totP=0,tb='';
+  for(let m=1;m<=tenor;m++){
+    const int=op*custRate,prin=emi-int,cl=Math.max(0,op-prin);
+    totE+=emi;totI+=int;totP+=prin;
+    tb+=`<tr><td>${m}</td><td>${fmtINR(op)}</td><td>${fmtINR(emi)}</td><td>${fmtINR(int)}</td><td>${fmtINR(prin)}</td><td>${fmtINR(cl)}</td></tr>`;
+    op=cl;
+  }
+  document.getElementById('amortBody').innerHTML=tb;
+  document.getElementById('amortFoot').innerHTML=`<tr><td>Total</td><td></td><td>${fmtINR(totE)}</td><td>${fmtINR(totI)}</td><td>${fmtINR(totP)}</td><td></td></tr>`;
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ── WhatsApp: plain text with *bold* ── */
+function copyWA(){
+  const d=_d; if(!d.dateStr)return;
+  const oemTag=s=>s?' (OEM Bears)':'';
+  const txt=
+`*BAJAJ FINANCE \u2014 DEAL SUMMARY*\n_These are tentative values_
+\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+Date: ${d.dateStr}
+Machine value (incl. GST): ${fmtINRplain(d.po)}
+Advance paid: ${fmtINRplain(d.adv)}
+Margin money: ${(d.marginPct*100).toFixed(2)}%
+Final loan amount (payable by customer): ${fmtINRplain(d.custLoan)}
+State: ${d.state||'\u2014'}
+Tenor: ${d.tenor} months
+Rate of interest (BFL): ${d.roiPct.toFixed(2)}%${d.sub==='Split'?'\\nCustomer ROI: '+d.custRoiPct.toFixed(2)+'%\\nOEM bears ROI: '+d.oemRoiPct.toFixed(2)+'%':''}
+
+*Charges \u2014 ${fmtINRplain(d.totalCharges)}*
+  Processing fee: ${fmtINRplain(d.pfA)}${oemTag(d.pfOEM)}
+  Insurance: ${d.insDisplayPlain}${oemTag(d.insOEM)}
+  Stamp duty: ${d.sdDisplayPlain}${oemTag(d.sdOEM)}
+  Documentation: ${fmtINRplain(d.dcA)}${oemTag(d.dcOEM)}
+  Hybrid Flexi: ${fmtINRplain(d.fcA)}${oemTag(d.fcOEM)}
+
+\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+Customer EMI: *${fmtINRplain(d.emi)}*
+${d.sub==='Split'?'Partial':'Total'} subvention amount (incl. GST): *${fmtINRplain(d.subvAmt)}*
+Net payment to OEM: *${fmtINRplain(d.netToOEM)}*
+\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500`;
+  doCopyText(txt,'Copied for WhatsApp','#25d366');
+}
+
+/* ── Email: HTML table matching the reference image ── */
+function copyEmail(){
+  const d=_d; if(!d.dateStr)return;
+  const oemTag=s=>s?' (OEM Bears)':'';
+  const f=v=>'\u20b9'+Math.round(v).toLocaleString('en-IN');
+  const bdr='border:1px solid #999999';
+  const ff='font-family:Arial,Helvetica,sans-serif';
+  const fs='font-size:13px';
+  const pad='padding:7px 12px';
+  const padSub='padding:5px 12px 5px 24px';
+
+  function row(label,value,bg,bold,sub){
+    const p=sub?padSub:pad;
+    const fw=bold?'font-weight:bold;':'';
+    return `<tr>
+      <td style="${p};${bdr};background-color:${bg};${ff};${fs};${fw}">${label}</td>
+      <td style="${pad};${bdr};background-color:${bg};${ff};${fs};${fw};text-align:right">${value}</td>
+    </tr>`;
+  }
+
+  const html=`<table style="border-collapse:collapse;width:100%;max-width:580px;${ff}">
+  <tr><td colspan="2" style="background-color:#000000;color:#ffffff;font-weight:bold;font-size:14px;${pad};text-align:center;letter-spacing:1px;${bdr};${ff}">SUBVENTION CALCULATION</td></tr>
+  ${row('Equipment Value (Inclusive of GST)',f(d.po),'#d9d9d9',false)}
+  ${row('Advance',f(d.adv),'#f2f2f2',false)}
+  ${row('Margin Money',(d.marginPct*100).toFixed(2)+'%','#d9d9d9',false)}
+  ${row('Loan Amount',f(d.custLoan),'#f2f2f2',false)}
+  ${row('Tenor (In months)',d.tenor,'#d9d9d9',false)}
+  ${row('Rate of Interest',d.roiPct.toFixed(2)+'%','#f2f2f2',false)}
+  <tr>
+    <td style="${pad};${bdr};background-color:#f5c300;${ff};${fs};font-weight:bold">Other Charges${d.totalCharges>0?' ':''}${oemTag(d.pfOEM&&d.insOEM&&d.sdOEM&&d.dcOEM&&d.fcOEM)}</td>
+    <td style="${pad};${bdr};background-color:#f5c300;${ff};${fs};font-weight:bold;text-align:right">${f(d.totalCharges)}</td>
+  </tr>
+  ${row('Processing Fee (inclusive of GST)'+oemTag(d.pfOEM),f(d.pfA),'#f2f2f2',false,true)}
+  ${row('Stamp Duty'+oemTag(d.sdOEM),d.sdDisplayPlain,'#d9d9d9',false,true)}
+  ${row('Insurance'+oemTag(d.insOEM),d.insDisplayPlain,'#f2f2f2',false,true)}
+  ${row('Documentation charges'+oemTag(d.dcOEM),f(d.dcA),'#d9d9d9',false,true)}
+  ${d.fcA>0?row('Hybrid Flexi charge'+oemTag(d.fcOEM),f(d.fcA),'#f2f2f2',false,true):''}
+  <tr>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};${fs};font-weight:bold">Customer EMI</td>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};${fs};font-weight:bold;text-align:right">${f(d.emi)}</td>
+  </tr>
+  <tr>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};${fs};font-weight:bold">Total Subvention amount (Inclusive of GST)</td>
+    <td style="${pad};${bdr};background-color:#f5c300;color:#000000;${ff};${fs};font-weight:bold;text-align:right">${f(d.subvAmt)}</td>
+  </tr>
+  ${row('Net Payment to OEM',f(d.netToOEM),'#f2f2f2',true)}
+</table>`;
+
+  openHtmlInNewTab(html, 'Deal Summary');
+}
+
+function openEmail(){ copyEmail(); }
+
+/* ── Copy Amortisation Schedule as HTML table for email ── */
+function copyAmort(){
+  const d=_d; if(!d.dateStr)return;
+  const f=v=>'\u20b9'+Math.round(v).toLocaleString('en-IN');
+  const bdr='border:1px solid #999999';
+  const ff='font-family:Arial,Helvetica,sans-serif';
+  const pad='padding:7px 10px';
+
+  const custRate=d.custRoiPct/100/12;
+  let op=d.custLoan, totE=0, totI=0, totP=0;
+  let rows='';
+  for(let m=1;m<=d.tenor;m++){
+    const int=op*custRate, prin=d.emi-int, cl=Math.max(0,op-prin);
+    totE+=d.emi; totI+=int; totP+=prin;
+    const bg=m%2===0?'#ffffff':'#f2f2f2';
+    rows+=`<tr>
+      <td style="${pad};${bdr};background-color:${bg};${ff};font-size:12px;text-align:center">${m}</td>
+      <td style="${pad};${bdr};background-color:${bg};${ff};font-size:12px;text-align:right">${f(op)}</td>
+      <td style="${pad};${bdr};background-color:${bg};${ff};font-size:12px;text-align:right">${f(d.emi)}</td>
+      <td style="${pad};${bdr};background-color:${bg};${ff};font-size:12px;text-align:right">${f(int)}</td>
+      <td style="${pad};${bdr};background-color:${bg};${ff};font-size:12px;text-align:right">${f(prin)}</td>
+      <td style="${pad};${bdr};background-color:${bg};${ff};font-size:12px;text-align:right">${f(Math.max(0,cl))}</td>
+    </tr>`;
+    op=Math.max(0,cl);
+  }
+
+  const html=`<table style="border-collapse:collapse;width:100%;max-width:700px;${ff}">
+  <tr><td colspan="6" style="background-color:#000000;color:#ffffff;font-weight:bold;font-size:14px;${pad};text-align:center;letter-spacing:1px;${bdr};${ff}">CUSTOMER AMORTISATION SCHEDULE</td></tr>
+  <tr><td colspan="6" style="background-color:#333333;color:#cccccc;font-size:12px;${pad};${bdr};${ff}">
+    Loan: \u20b9${Math.round(d.custLoan).toLocaleString('en-IN')} &nbsp;|&nbsp; Tenor: ${d.tenor} months &nbsp;|&nbsp; Rate: ${d.roiPct.toFixed(2)}% &nbsp;|&nbsp; EMI: \u20b9${Math.round(d.emi).toLocaleString('en-IN')}
+  </td></tr>
+  <tr>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};font-size:12px;font-weight:bold;text-align:center">Month</td>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};font-size:12px;font-weight:bold;text-align:right">Opening Principal</td>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};font-size:12px;font-weight:bold;text-align:right">EMI</td>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};font-size:12px;font-weight:bold;text-align:right">Interest</td>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};font-size:12px;font-weight:bold;text-align:right">Principal Repaid</td>
+    <td style="${pad};${bdr};background-color:#000000;color:#ffffff;${ff};font-size:12px;font-weight:bold;text-align:right">Closing Principal</td>
+  </tr>
+  ${rows}
+  <tr>
+    <td style="${pad};${bdr};background-color:#f5c300;${ff};font-size:12px;font-weight:bold;text-align:center">Total</td>
+    <td style="${pad};${bdr};background-color:#f5c300;${ff};font-size:12px;font-weight:bold;text-align:right"></td>
+    <td style="${pad};${bdr};background-color:#f5c300;${ff};font-size:12px;font-weight:bold;text-align:right">${f(totE)}</td>
+    <td style="${pad};${bdr};background-color:#f5c300;${ff};font-size:12px;font-weight:bold;text-align:right">${f(totI)}</td>
+    <td style="${pad};${bdr};background-color:#f5c300;${ff};font-size:12px;font-weight:bold;text-align:right">${f(totP)}</td>
+    <td style="${pad};${bdr};background-color:#f5c300;${ff};font-size:12px;font-weight:bold;text-align:right"></td>
+  </tr>
+</table>`;
+
+  openHtmlInNewTab(html, 'Amortisation Schedule');
+}
+
+function openAmort(){ copyAmort(); }
+
+/* ── Open HTML table in a new tab — works on desktop AND mobile ── */
+function openHtmlInNewTab(tableHtml, title){
+  const page=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Bajaj Finance \u2014 ${title}</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px;margin:0}
+  .inst{background:#1a1a1a;color:#f5c300;padding:14px 18px;margin-bottom:20px;font-size:14px;font-weight:600;border-left:4px solid #f5c300;line-height:1.6}
+  .inst span{color:#ffffff;font-weight:400}
+  table{border-collapse:collapse;width:100%;max-width:700px}
+</style>
+</head><body>
+<div class="inst">
+  To copy this table into your email:<br/>
+  <span>1. Press <b>Ctrl+A</b> (or long-press and Select All on mobile)</span><br/>
+  <span>2. Press <b>Ctrl+C</b> to copy (or tap Copy)</span><br/>
+  <span>3. Paste directly into <b>Gmail or Outlook</b> \u2014 the table will appear formatted</span>
+</div>
+${tableHtml}
+</body></html>`;
+  const blob=new Blob([page],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+
+/* ── Core HTML copy using hidden contenteditable div (works on all browsers) ── */
+function copyHtmlToClipboard(html, msgId, msg){
+  const el=document.createElement('div');
+  el.contentEditable='true';
+  el.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none';
+  el.innerHTML=html;
+  document.body.appendChild(el);
+  const range=document.createRange();
+  range.selectNodeContents(el);
+  const sel=window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  try{
+    document.execCommand('copy');
+    showMsgById(msgId, msg, '#f5c300');
+  }catch(e){
+    showMsgById(msgId, 'Copy failed — try a different browser', '#f87171');
+  }
+  sel.removeAllRanges();
+  document.body.removeChild(el);
+}
+
+function showMsg(msg,color){ showMsgById('copiedMsg',msg,color); }
+function showMsgById(id,msg,color){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.textContent=msg; el.style.color=color;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+function doCopyText(txt,msg,color){
+  navigator.clipboard.writeText(txt).then(()=>showMsg(msg,color)).catch(()=>{
+    const t=document.createElement('textarea');t.value=txt;
+    document.body.appendChild(t);t.select();document.execCommand('copy');
+    document.body.removeChild(t);showMsg(msg,color);
+  });
+}
+
+let lastDeliveryOrderFile=null;
+const DO_LOGO_SRC='assets/bajaj-finance-logo.png';
+const DO_SIGNATURE_SRC='assets/signature.jpeg';
+const _doImageCache={};
+
+function doVal(id){return (document.getElementById(id).value||'').trim();}
+function cleanSme(v){return (v||'').trim().replace(/^SME[\s-]*/i,'');}
+function safeFilePart(v){return (v||'').trim().replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_')||'NA';}
+function fmtDateForDO(v){
+  const d=v?new Date(v+'T00:00:00'):new Date();
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'-');
+}
+function fmtRs(v){return 'Rs. '+Math.round(v||0).toLocaleString('en-IN');}
+function pdfMoneyText(v){
+  return String(v||'').replace(/\u20b9|₹|&#8377;/g,'Rs. ').replace(/\s+/g,' ').trim();
+}
+function pct(v){return (Number(v)||0).toFixed(2)+'%';}
+function ensureCalcData(){
+  if(!_d.dateStr) calc();
+  return !!_d.dateStr;
+}
+function deliveryData(){
+  const d=_d, sme=cleanSme(doVal('doSme'));
+  const required=[
+    ['doOemName','OEM Name'],['doOemAddress','OEM Address'],['doCustomerName','Customer Name'],
+    ['doCity','City'],['doMachineName','Machine Name'],['doSme','SME Number'],
+    ['doMoratorium','Principal Moratorium / Flexi Tenor'],
+    ['doMoratoriumEmi','Customer EMI during Moratorium / Flexi']
+  ];
+  for(const [id,label] of required){
+    if(!doVal(id)){showMsgById('doMsg','Enter '+label,'#f87171');document.getElementById(id).focus();return null;}
+  }
+  const oemChargeNames=[
+    d.pfOEM?'Processing Fee':'',
+    d.insOEM?'Insurance':'',
+    d.sdOEM?'Stamp Duty':'',
+    d.dcOEM?'Documentation Charges':'',
+    d.fcOEM?'Hybrid Flexi Charges':''
+  ].filter(Boolean);
+  return {
+    date:fmtDateForDO(doVal('doDate')),
+    oemName:doVal('doOemName'),
+    oemAddress:doVal('doOemAddress'),
+    customerName:doVal('doCustomerName'),
+    city:doVal('doCity'),
+    machineName:doVal('doMachineName'),
+    sme,
+    moratorium:doVal('doMoratorium'),
+    moratoriumEmi:doVal('doMoratoriumEmi'),
+    subventionYesNo:d.sub==='No'?'No':'Yes',
+    oemChargesText:oemChargeNames.length?'Yes - '+oemChargeNames.join(', '):'No'
+  };
+}
+function textLines(doc,text,maxW){
+  return doc.splitTextToSize(String(text||''),maxW);
+}
+function drawWrapped(doc,text,x,y,maxW,lineH,opt={}){
+  const lines=textLines(doc,text,maxW);
+  doc.text(lines,x,y);
+  if(opt.underline){
+    lines.forEach((line,i)=>{
+      const yy=y+i*lineH+1.8;
+      doc.line(x,yy,x+doc.getTextWidth(line),yy);
+    });
+  }
+  return y+lines.length*lineH;
+}
+function loadImageDataUrl(src){
+  if(_doImageCache[src])return Promise.resolve(_doImageCache[src]);
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      canvas.width=img.naturalWidth; canvas.height=img.naturalHeight;
+      canvas.getContext('2d').drawImage(img,0,0);
+      const data=canvas.toDataURL(src.toLowerCase().endsWith('.jpeg')||src.toLowerCase().endsWith('.jpg')?'image/jpeg':'image/png');
+      _doImageCache[src]=data;
+      resolve(data);
+    };
+    img.onerror=()=>resolve('');
+    img.src=src;
+  });
+}
+function drawInlineParts(doc,parts,x,y,maxW,lineH){
+  let cx=x, cy=y, lastBold=false;
+  parts.forEach(part=>{
+    doc.setFont('helvetica',part.bold?'bold':'normal');
+    const words=String(part.text||'').split(/(\s+)/);
+    words.forEach(word=>{
+      const w=doc.getTextWidth(word);
+      if(cx+w>x+maxW&&word.trim()){cx=x;cy+=lineH;}
+      doc.text(word,cx,cy);
+      if(part.underline&&word){
+        doc.line(cx,cy+1.8,cx+w,cy+1.8);
+      }
+      cx+=w;
+      lastBold=part.bold;
+    });
+  });
+  doc.setFont('helvetica',lastBold?'bold':'normal');
+  return cy+lineH;
+}
+async function buildDeliveryOrderPdf(){
+  if(!ensureCalcData())return null;
+  const data=deliveryData(); if(!data)return null;
+  if(!window.jspdf||!window.jspdf.jsPDF){showMsgById('doMsg','PDF library not loaded. Check internet and reload.','#f87171');return null;}
+  const [logoData,signatureData]=await Promise.all([loadImageDataUrl(DO_LOGO_SRC),loadImageDataUrl(DO_SIGNATURE_SRC)]);
+  const d=_d;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
+  const pageW=612, margin=72, contentW=468;
+  const left=margin, right=pageW-margin;
+  doc.setProperties({title:'Delivery Order'});
+  doc.setLineWidth(.45);
+  doc.setDrawColor(0);
+  doc.setTextColor(0);
+
+  let y=54;
+  doc.setFont('helvetica','bold'); doc.setFontSize(14);
+  doc.text('Delivery Order',pageW/2,y,{align:'center'});
+  if(logoData)doc.addImage(logoData,'PNG',right-104,26,104,44);
+
+  y=86;
+  doc.setFontSize(8.8); doc.setFont('helvetica','bold');
+  doc.text('To,',left,y);
+  doc.text('Date: '+data.date,right,y,{align:'right'});
+  y+=15;
+  const addressLines=textLines(doc,data.oemName+', '+data.oemAddress,contentW);
+  doc.text(addressLines,left,y);
+  y+=Math.max(2,addressLines.length)*10.5+9;
+
+  const loanPlain=fmtRs(d.custLoan).replace('Rs. ','');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.8);
+  y=drawInlineParts(doc,[
+    {text:'Sub Payment confirmation for Rs. ',bold:true,underline:true},
+    {text:loanPlain,bold:true,underline:true},
+    {text:' against supply of ',bold:true,underline:true},
+    {text:data.machineName,bold:true,underline:true},
+    {text:' for ',bold:true,underline:true},
+    {text:data.customerName+', '+data.city,bold:true,underline:true},
+    {text:' against Loan Application No. SME',bold:true,underline:true},
+    {text:data.sme+'.',bold:true,underline:true}
+  ],left,y,contentW,10.3)+10;
+
+  doc.setFont('helvetica','normal');
+  doc.text('Respected Sir/Madam,',left,y); y+=15;
+  y=drawInlineParts(doc,[
+    {text:'With reference to above subject, we are pleased to inform you that loan has been sanctioned for Rs. '},
+    {text:loanPlain,bold:true,underline:true},
+    {text:' for the supply of '},
+    {text:data.machineName,bold:true,underline:true},
+    {text:' to '},
+    {text:data.customerName+', '+data.city+'.',bold:true,underline:true}
+  ],left,y,contentW,10.3)+8;
+  y=drawInlineParts(doc,[
+    {text:"You are advised to ship and deliver the equipment's at site and send the dispatch documents (Invoice / LR) to Bajaj Finance Limited for disbursement. The payment for Rs. "},
+    {text:loanPlain,bold:true,underline:true},
+    {text:' would be made as per the Payment Terms of the Purchase Order i.e. at the sight of dispatch documents.'}
+  ],left,y,contentW,10.3)+8;
+  y=drawWrapped(doc,'On submission of Invoice, LR and Margin Money Receipt, we confirm to release payment of the entire balance amount.',left,y,contentW,10.3)+9;
+
+  const tableRows=[
+    ['Particulars','Computation',true],
+    ['Date',data.date],
+    ['Purchase Order Value (Machine Value incl. of GST)',fmtRs(d.po)],
+    ['Margin Money Amount',fmtRs(d.adv)],
+    ['Margin Money%',pct(d.marginPct*100)],
+    ['Final Loan Amount with Other Charges',fmtRs(d.custLoan)],
+    ['Disbursement State',d.state||'-'],
+    ['Principal Moratorium/ Flexi Tenor',data.moratorium],
+    ['Total Loan Tenor',d.tenor+' months'],
+    ['BFL IRR',pct(d.roiPct)],
+    ['Subvention Deal - Yes/No',data.subventionYesNo],
+    ['Customer IRR',pct(d.custRoiPct)],
+    ['Subvention IRR by Manufacturer/Dealer',pct(d.oemRoiPct)],
+    ['Customer EMI during Principal Moratorium/ Flexi Tenor',data.moratoriumEmi],
+    ['Customer EMI',fmtRs(d.emi)],
+    ['Total Charges*',fmtRs(d.totalCharges)],
+    ['1. Processing Fee (Inclusive of GST)',fmtRs(d.pfA)],
+    ['2. Stamp Duty',pdfMoneyText(d.sdDisplayPlain)],
+    ['3. Documentation charges',fmtRs(d.dcA)],
+    ['4. Insurance charges (Inclusive of GST)',pdfMoneyText(d.insDisplayPlain)],
+    ['5. Hybrid Flexi Charges',fmtRs(d.fcA)],
+    ['Are other charges also a part of Subvention?',data.oemChargesText],
+    ['Total Subvention Amount (Inclusive of GST @ 18%)',fmtRs(d.subvAmt)],
+    ['Net Payment to '+data.oemName,fmtRs(d.netToOEM)]
+  ];
+  const tx=left, tw=contentW, c1=320, c2=tw-c1, minRowH=14.0, cellPad=4, lineH=8.4;
+  doc.setFontSize(7.3);
+  tableRows.forEach((r,idx)=>{
+    if(idx===0){doc.setFont('helvetica','bold');}else{doc.setFont('helvetica','normal');}
+    const labelLines=doc.splitTextToSize(String(r[0]||''),c1-(cellPad*2));
+    const valLines=doc.splitTextToSize(String(r[1]||''),c2-(cellPad*2));
+    const rowH=Math.max(minRowH,(Math.max(labelLines.length,valLines.length)*lineH)+5.4);
+    doc.rect(tx,y,tw,rowH);
+    doc.line(tx+c1,y,tx+c1,y+rowH);
+    labelLines.forEach((line,i)=>doc.text(line,tx+cellPad,y+9.6+(i*lineH)));
+    valLines.forEach((line,i)=>doc.text(line,tx+c1+c2-cellPad,y+9.6+(i*lineH),{align:'right'}));
+    y+=rowH;
+  });
+  y+=10;
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.7);
+  doc.text('* Note: Delivery order is valid for 60 days from the date of issue',left,y);
+  y+=22;
+  doc.text('Thanking you,',left,y);
+  y+=15;
+  doc.setFont('helvetica','normal');
+  doc.text('For Bajaj Finance Limited',left,y);
+  if(y>666)y=666;
+  if(signatureData)doc.addImage(signatureData,'JPEG',left+2,y+7,82,58);
+  y+=70;
+  doc.text('Authorized Signatory',left,y);
+  return {doc,data};
+}
+async function downloadDeliveryOrder(){
+  const built=await buildDeliveryOrderPdf(); if(!built)return;
+  const {doc,data}=built;
+  const fileName=`Delivery_Order_${safeFilePart(data.oemName)}_${safeFilePart(data.sme)}.pdf`;
+  const blob=doc.output('blob');
+  lastDeliveryOrderFile=new File([blob],fileName,{type:'application/pdf'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=fileName;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  document.getElementById('shareDoBtn').disabled=false;
+  showMsgById('doMsg','PDF downloaded','#f5c300');
+}
+async function shareDeliveryOrder(){
+  if(!lastDeliveryOrderFile){await downloadDeliveryOrder();}
+  if(!lastDeliveryOrderFile)return;
+  if(navigator.canShare&&navigator.canShare({files:[lastDeliveryOrderFile]})){
+    await navigator.share({files:[lastDeliveryOrderFile],title:'Delivery Order',text:'Delivery Order PDF'});
+    showMsgById('doMsg','Share sheet opened','#f5c300');
+  }else{
+    showMsgById('doMsg','Sharing files is not supported here. Use the downloaded PDF.','#f87171');
+  }
+}
+
+function resetForm(){
+  ['po','adv','tenor','roi','pfPct','pf','insAmt','sdAmt','dc','fc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('marginPct').value='';
+  document.getElementById('insText').value='';
+  document.getElementById('sdText').value='';
+  document.getElementById('state').value='';
+  ['pfS','insS','sdS','dcS','fcS'].forEach(id=>document.getElementById(id).checked=false);
+  document.getElementById('custRoi').value='';
+  document.getElementById('oemRoi').value='';
+  setMode('ins','amt');setMode('sd','amt');setSub('No');
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('errMsg').style.display='none';
+  _d={};
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const dateEl=document.getElementById('doDate');
+  if(dateEl&&!dateEl.value)dateEl.value=new Date().toISOString().slice(0,10);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.matches('button')&&!e.target.matches('textarea'))calc();});
+</script>
+</body>
+</html>
